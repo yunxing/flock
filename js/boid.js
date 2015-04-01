@@ -1,9 +1,17 @@
 
 module.exports = Boid;
 
-function Boid(position, speed) {
+function Boid(position, speed, side) {
   this.position = position;
   this.speed = speed;
+  this.hp = 100;
+
+    if (!side) {
+        this.side = 1;
+    } else {
+        this.side = side;
+    }
+
 }
 
 Boid.prototype.compare = function(that, isEven) {

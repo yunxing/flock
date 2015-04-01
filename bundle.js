@@ -1,84 +1,18 @@
-;(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
-
-function Vector(x, y) {
-  this.x = x;
-  this.y = y;
-}
-
-Vector.prototype.add = function(v) {
-  return new Vector(this.x + v.x, this.y + v.y);
-};
-
-Vector.prototype.distSquared = function(v) {
-  return Math.pow(this.x - v.x, 2) + 
-    Math.pow(this.y - v.y, 2);
-};
-
-Vector.prototype.distance = function(v) {
-  return Math.sqrt(this.distSquared(v));
-};
-
-Vector.prototype.multiplyBy = function(s) {
-  return new Vector(this.x * s, this.y * s);
-};
-
-Vector.prototype.neg = function(v) {
-  return new Vector(-this.x, -this.y);
-};
-
-Vector.prototype.magnitude = function() {
-  return this.distance(new Vector(0, 0));
-};
-
-Vector.prototype.normalize = function() {
-  var magnitude = this.magnitude();
-  
-  if(magnitude === 0)
-    return new Vector(0, 0);
-
-  return new Vector(this.x / magnitude, this.y / magnitude);
-};
-
-Vector.prototype.subtract = function(v) {
-  return this.add(v.neg());
-};
-
-Vector.prototype.divideBy = function(s) {
-  return this.multiplyBy(1 / s);
-};
-
-Vector.prototype.limit = function(s) {
-  if(this.magnitude() > s)
-    return this.normalize().multiplyBy(s);
-
-  return this;
-};
-
-Vector.prototype.angle = function(p1, p2) {
-  var v1 = this.subtract(p1).normalize();
-  var v2 = this.subtract(p2).normalize();
-
-  return Math.acos(v1.x * v2.x + v1.y * v2.y);
-};
-
-Vector.prototype.compare = function(that, y) {
-  return (y && (this.y - that.y || this.x - that.x)) ||
-    (this.x - that.x || this.y - that.y);
-};
-
-Vector.prototype.toString = function() {
-  return "{x:" + this.x + ", y:" + this.y + "}";
-};
-
-module.exports = Vector;
-
-},{}],2:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 module.exports = Boid;
 
-function Boid(position, speed) {
+function Boid(position, speed, side) {
   this.position = position;
   this.speed = speed;
+  this.hp = 100;
+
+    if (!side) {
+        this.side = 1;
+    } else {
+        this.side = side;
+    }
+
 }
 
 Boid.prototype.compare = function(that, isEven) {
@@ -89,7 +23,7 @@ Boid.prototype.toString = function() {
   return this.position.toString();
 };
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var fps = require('fps'),
   ticker = require('ticker'),
   debounce = require('debounce'),
@@ -103,6 +37,8 @@ var anchor = document.createElement('a'),
   ctx = canvas.getContext('2d'),
   boids = Boids();
 
+var left = 100;
+
 canvas.addEventListener('click', function(e) {
   var x = e.pageX,
     y = e.pageY,
@@ -110,18 +46,24 @@ canvas.addEventListener('click', function(e) {
     halfWidth = canvas.width/2;
   x = x - halfWidth;
   y = y - halfHeight;
-  if (boids.boids.length < 500) 
-    boids.boids.push(
-      new Boid(new Vector(x, y), new Vector(Math.random()*6-3,Math.random()*6-3))
-    );
+    for (var i = -2; i < 3; ++i) {
+        if (left > 0) {
+            boids.boids.push(
+                new Boid(new Vector(x+i*10, y+i*10), new Vector(Math.random()*6-3,Math.random()*6-3), 2)
+            );
+            left --;
+        }
+    }
 });
 
-window.onresize = debounce(function() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}, 100);
-window.onresize();
+// window.onresize = debounce(function() {
+//   canvas.width = window.innerWidth;
+//   canvas.height = window.innerHeight;
+// }, 100);
+// window.onresize();
 
+canvas.width = 700;
+canvas.height = 700;
 anchor.setAttribute('href', '#');
 anchor.appendChild(canvas);
 document.body.style.margin = '0';
@@ -138,308 +80,50 @@ ticker(window, 60).on('tick', function() {
 
   ctx.fillStyle = 'rgba(255,241,235,0.25)'; // '#FFF1EB'
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   ctx.fillStyle = '#543D5E';
   for (var i = 0, l = boidData.length, x, y; i < l; i += 1) {
+      if (boidData[i].side == 1) {
+          ctx.fillStyle = '#543D5E';
+      } else {
+          ctx.fillStyle = 'rgba(255,0,0,0.25)'; // '#FFF1EB'
+      }
     x = boidData[i].position.x; y = boidData[i].position.y;
     // wrap around the screen
     boidData[i].position.x = x > halfWidth ? -halfWidth : -x > halfWidth ? halfWidth : x;
     boidData[i].position.y = y > halfHeight ? -halfHeight : -y > halfHeight ? halfHeight : y;
-    ctx.fillRect(x + halfWidth, y + halfHeight, 2, 2);
+    ctx.fillRect(x + halfWidth, y + halfHeight, 5, 5);
   }
 });
 
-var frameText = document.querySelector('[data-fps]');
+var fpsText = document.querySelector('[data-fps]');
 var countText = document.querySelector('[data-count]');
+var countText2 = document.querySelector('[data-count2]');
+var livesText = document.querySelector('[data-left]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
-  for (var i = 0; i < 3; i += 1) {
-    if (rate <= 56 && boids.boids.length > 10) boids.boids.pop();
-    if (rate >= 60 && boids.boids.length < 300) 
-      boids.boids.push(
-        new Boid(new Vector(0,0), new Vector(Math.random()*6-3,Math.random()*6-3))
-      );
+  // for (var i = 0; i < 3; i += 1) {
+  //   if (rate <= 56 && boids.boids.length > 10) boids.boids.pop();
+  //   if (rate >= 60 && boids.boids.length < 300)
+  //     boids.boids.push(
+  //       new Boid(new Vector(0,0), new Vector(Math.random()*6-3,Math.random()*6-3))
+  //     );
+  // }
+    var count = 0;
+    var count2 = 0;
+    var boidData = boids.boids;
+  for (var i = 0, l = boidData.length, x, y; i < l; i += 1) {
+      if (boidData[i].side == 1) {
+          count ++;
+      } else {
+          count2 ++;
+      }
   }
-  frameText.innerHTML = String(Math.round(rate));
-  countText.innerHTML = String(boids.boids.length);
+  livesText.innerHTML = String(left);
+  countText.innerHTML = String(count);
+  countText2.innerHTML = String(count2);
+  fpsText.innerHTML = String(Math.round(rate));
 });
 
-},{"./vector":1,"./boid":2,"./":4,"fps":5,"ticker":6,"debounce":7}],8:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-}
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-
-},{}],9:[function(require,module,exports){
-(function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
-
-var EventEmitter = exports.EventEmitter = process.EventEmitter;
-var isArray = typeof Array.isArray === 'function'
-    ? Array.isArray
-    : function (xs) {
-        return Object.prototype.toString.call(xs) === '[object Array]'
-    }
-;
-function indexOf (xs, x) {
-    if (xs.indexOf) return xs.indexOf(x);
-    for (var i = 0; i < xs.length; i++) {
-        if (x === xs[i]) return i;
-    }
-    return -1;
-}
-
-// By default EventEmitters will print a warning if more than
-// 10 listeners are added to it. This is a useful default which
-// helps finding memory leaks.
-//
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-var defaultMaxListeners = 10;
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!this._events) this._events = {};
-  this._events.maxListeners = n;
-};
-
-
-EventEmitter.prototype.emit = function(type) {
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events || !this._events.error ||
-        (isArray(this._events.error) && !this._events.error.length))
-    {
-      if (arguments[1] instanceof Error) {
-        throw arguments[1]; // Unhandled 'error' event
-      } else {
-        throw new Error("Uncaught, unspecified 'error' event.");
-      }
-      return false;
-    }
-  }
-
-  if (!this._events) return false;
-  var handler = this._events[type];
-  if (!handler) return false;
-
-  if (typeof handler == 'function') {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        var args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-    return true;
-
-  } else if (isArray(handler)) {
-    var args = Array.prototype.slice.call(arguments, 1);
-
-    var listeners = handler.slice();
-    for (var i = 0, l = listeners.length; i < l; i++) {
-      listeners[i].apply(this, args);
-    }
-    return true;
-
-  } else {
-    return false;
-  }
-};
-
-// EventEmitter is defined in src/node_events.cc
-// EventEmitter.prototype.emit() is also defined there.
-EventEmitter.prototype.addListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('addListener only takes instances of Function');
-  }
-
-  if (!this._events) this._events = {};
-
-  // To avoid recursion in the case that type == "newListeners"! Before
-  // adding it to the listeners, first emit "newListeners".
-  this.emit('newListener', type, listener);
-
-  if (!this._events[type]) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  } else if (isArray(this._events[type])) {
-
-    // Check for listener leak
-    if (!this._events[type].warned) {
-      var m;
-      if (this._events.maxListeners !== undefined) {
-        m = this._events.maxListeners;
-      } else {
-        m = defaultMaxListeners;
-      }
-
-      if (m && m > 0 && this._events[type].length > m) {
-        this._events[type].warned = true;
-        console.error('(node) warning: possible EventEmitter memory ' +
-                      'leak detected. %d listeners added. ' +
-                      'Use emitter.setMaxListeners() to increase limit.',
-                      this._events[type].length);
-        console.trace();
-      }
-    }
-
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  } else {
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  var self = this;
-  self.on(type, function g() {
-    self.removeListener(type, g);
-    listener.apply(this, arguments);
-  });
-
-  return this;
-};
-
-EventEmitter.prototype.removeListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('removeListener only takes instances of Function');
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (!this._events || !this._events[type]) return this;
-
-  var list = this._events[type];
-
-  if (isArray(list)) {
-    var i = indexOf(list, listener);
-    if (i < 0) return this;
-    list.splice(i, 1);
-    if (list.length == 0)
-      delete this._events[type];
-  } else if (this._events[type] === listener) {
-    delete this._events[type];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  if (arguments.length === 0) {
-    this._events = {};
-    return this;
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (type && this._events && this._events[type]) this._events[type] = null;
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  if (!this._events) this._events = {};
-  if (!this._events[type]) this._events[type] = [];
-  if (!isArray(this._events[type])) {
-    this._events[type] = [this._events[type]];
-  }
-  return this._events[type];
-};
-
-})(require("__browserify_process"))
-},{"__browserify_process":8}],7:[function(require,module,exports){
-/**
- * Debounces a function by the given threshold.
- *
- * @see http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
- * @param {Function} function to wrap
- * @param {Number} timeout in ms (`100`)
- * @param {Boolean} whether to execute at the beginning (`true`)
- * @api public
- */
-
-module.exports = function debounce(func, threshold, execAsap){
-  var timeout;
-  if (false !== execAsap) execAsap = true;
-
-  return function debounced(){
-    var obj = this, args = arguments;
-
-    function delayed () {
-      if (!execAsap) {
-        func.apply(obj, args);
-      }
-      timeout = null;
-    }
-
-    if (timeout) {
-      clearTimeout(timeout);
-    } else if (execAsap) {
-      func.apply(obj, args);
-    }
-
-    timeout = setTimeout(delayed, threshold || 100);
-  };
-};
-
-},{}],10:[function(require,module,exports){
+},{"./":4,"./boid":1,"./vector":5,"debounce":6,"fps":7,"ticker":10}],3:[function(require,module,exports){
 module.exports = Dtree;
 
 function Dtree() {
@@ -539,7 +223,7 @@ function toString(node) {
 }
 
 },{}],4:[function(require,module,exports){
-var EventEmitter = require('events').EventEmitter, 
+var EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   Vector = require('./vector'),
   Dtree = require('./dtree'),
@@ -565,13 +249,17 @@ function Boids(opts, callback) {
   this.separationForce = opts.separationForce || 2;
   this.cohesionForce = opts.cohesionForce || 1;
   this.alignmentForce = opts.alignmentForce || opts.alignment || 1;
-  this.maxDistSq = Math.max(this.separationDistanceSq, 
-      this.cohesionDistanceSq, this.alignmentDistanceSq);
+  this.enemyForce = 2;
+  this.enemyDistance = 100;
+  this.enemyDistanceSq = Math.pow(this.enemyDistance, 2);
+  this.maxDistSq = Math.max(this.separationDistanceSq,
+                            this.cohesionDistanceSq, this.alignmentDistanceSq,
+                            this.enemyDistanceSq);
 
   var boids = this.boids = [];
 
-  for (var i = 0, l = opts.boids === undefined ? 150 : opts.boids; i < l; i += 1) {
-    boids[i] = new Boid( 
+  for (var i = 0, l = opts.boids === undefined ? 100 : opts.boids; i < l; i += 1) {
+    boids[i] = new Boid(
       new Vector(Math.random()*100 - 50, Math.random()*100 - 50),
       new Vector(0, 0)
     );
@@ -603,10 +291,13 @@ Boids.prototype.calcCohesion = function(boid) {
     target,
     neighbors = this.tickData.neighbors,
     count = 0;
-  
+
   for(var i=0; i<neighbors.length; i++) {
     target = neighbors[i].neighbor;
     if(boid === target)
+      continue;
+
+    if(boid.side !== target.side)
       continue;
 
     distSq = neighbors[i].distSq;
@@ -617,7 +308,7 @@ Boids.prototype.calcCohesion = function(boid) {
     }
   }
 
-  if( count === 0) 
+  if( count === 0)
     return new Vector(0, 0);
 
   return total
@@ -633,11 +324,14 @@ Boids.prototype.calcSeparation = function(boid) {
     target,
     distSq,
     neighbors = this.tickData.neighbors,
-    count = 0; 
+    count = 0;
 
   for(var i=0; i<neighbors.length; i++) {
     target = neighbors[i].neighbor;
     if(boid === target)
+      continue;
+
+    if(boid.side !== target.side)
       continue;
 
     distSq = neighbors[i].distSq;
@@ -655,7 +349,7 @@ Boids.prototype.calcSeparation = function(boid) {
 
   }
 
-  if(count === 0) 
+  if(count === 0)
     return new Vector(0, 0);
 
   return total
@@ -664,6 +358,44 @@ Boids.prototype.calcSeparation = function(boid) {
     .add(boid.speed) // Adding speed instead of subtracting because separation is repulsive
     .limit(this.accelerationLimit);
 };
+
+Boids.prototype.calcEnemy = function(boid) {
+  var total = new Vector(0, 0),
+    target,
+    distSq,
+    neighbors = this.tickData.neighbors,
+    count = 0;
+
+  for(var i=0; i<neighbors.length; i++) {
+    target = this.tickData.neighbors[i].neighbor;
+    if(boid === target)
+      continue;
+
+    if(boid.side === target.side)
+      continue;
+
+    distSq = neighbors[i].distSq;
+    if (distSq < 20) {
+        boid.hp -= 1;
+        target.hp -= 1;
+    }
+    if(distSq < this.enemyDistanceSq ) {
+      total = total.add(target.position
+                        .subtract(boid.position).normalize());
+      count++;
+        break;
+    }
+  }
+
+  if (count === 0)
+    return new Vector(0, 0);
+
+  return total
+    .divideBy(count)
+    .normalize()
+    .subtract(boid.speed)
+    .limit(this.accelerationLimit);
+}
 
 Boids.prototype.calcAlignment = function(boid) {
   var total = new Vector(0, 0),
@@ -678,7 +410,7 @@ Boids.prototype.calcAlignment = function(boid) {
       continue;
 
     distSq = neighbors[i].distSq;
-    if(distSq < this.alignmentDistanceSq && 
+    if(distSq < this.alignmentDistanceSq &&
         isInFrontOf(boid, target.position)) {
       total = total.add(target.speed);
       count++;
@@ -708,6 +440,8 @@ Boids.prototype.tick = function() {
       .multiplyBy(this.cohesionForce)
       .add(this.calcAlignment(boid)
         .multiplyBy(this.alignmentForce))
+      .add(this.calcEnemy(boid)
+        .multiplyBy(this.enemyForce))
       .subtract(this.calcSeparation(boid)
         .multiplyBy(this.separationForce));
   }
@@ -723,48 +457,138 @@ Boids.prototype.tick = function() {
     boid.position = boid.position.add(boid.speed);
     delete boid.acceleration;
   }
+    var newBoids = [];
+
+  for(var j=0; j<this.boids.length; j++) {
+    boid = this.boids[j];
+      if (boid.hp > 0) {
+          boid.hp += 0.1;
+          if (boid.hp > 100) {
+              boid.hp = 100;
+          }
+          newBoids.push(boid);
+      }
+  }
+    this.boids = newBoids;
 
   this.emit('tick', this.boids);
 };
 
 function isInFrontOf(boid, point) {
-  return boid.position.angle( boid.position.add(boid.speed), point) <= 
+  return boid.position.angle( boid.position.add(boid.speed), point) <=
     ( Math.PI / 3);
 }
 
+},{"./boid":1,"./dtree":3,"./vector":5,"events":11,"inherits":8}],5:[function(require,module,exports){
 
-},{"events":9,"./vector":1,"./dtree":10,"./boid":2,"inherits":11}],11:[function(require,module,exports){
-module.exports = inherits
-
-function inherits (c, p, proto) {
-  proto = proto || {}
-  var e = {}
-  ;[c.prototype, proto].forEach(function (s) {
-    Object.getOwnPropertyNames(s).forEach(function (k) {
-      e[k] = Object.getOwnPropertyDescriptor(s, k)
-    })
-  })
-  c.prototype = Object.create(p.prototype, e)
-  c.super = p
+function Vector(x, y) {
+  this.x = x;
+  this.y = y;
 }
 
-//function Child () {
-//  Child.super.call(this)
-//  console.error([this
-//                ,this.constructor
-//                ,this.constructor === Child
-//                ,this.constructor.super === Parent
-//                ,Object.getPrototypeOf(this) === Child.prototype
-//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
-//                 === Parent.prototype
-//                ,this instanceof Child
-//                ,this instanceof Parent])
-//}
-//function Parent () {}
-//inherits(Child, Parent)
-//new Child
+Vector.prototype.add = function(v) {
+  return new Vector(this.x + v.x, this.y + v.y);
+};
 
-},{}],5:[function(require,module,exports){
+Vector.prototype.distSquared = function(v) {
+  return Math.pow(this.x - v.x, 2) + 
+    Math.pow(this.y - v.y, 2);
+};
+
+Vector.prototype.distance = function(v) {
+  return Math.sqrt(this.distSquared(v));
+};
+
+Vector.prototype.multiplyBy = function(s) {
+  return new Vector(this.x * s, this.y * s);
+};
+
+Vector.prototype.neg = function(v) {
+  return new Vector(-this.x, -this.y);
+};
+
+Vector.prototype.magnitude = function() {
+  return this.distance(new Vector(0, 0));
+};
+
+Vector.prototype.normalize = function() {
+  var magnitude = this.magnitude();
+  
+  if(magnitude === 0)
+    return new Vector(0, 0);
+
+  return new Vector(this.x / magnitude, this.y / magnitude);
+};
+
+Vector.prototype.subtract = function(v) {
+  return this.add(v.neg());
+};
+
+Vector.prototype.divideBy = function(s) {
+  return this.multiplyBy(1 / s);
+};
+
+Vector.prototype.limit = function(s) {
+  if(this.magnitude() > s)
+    return this.normalize().multiplyBy(s);
+
+  return this;
+};
+
+Vector.prototype.angle = function(p1, p2) {
+  var v1 = this.subtract(p1).normalize();
+  var v2 = this.subtract(p2).normalize();
+
+  return Math.acos(v1.x * v2.x + v1.y * v2.y);
+};
+
+Vector.prototype.compare = function(that, y) {
+  return (y && (this.y - that.y || this.x - that.x)) ||
+    (this.x - that.x || this.y - that.y);
+};
+
+Vector.prototype.toString = function() {
+  return "{x:" + this.x + ", y:" + this.y + "}";
+};
+
+module.exports = Vector;
+
+},{}],6:[function(require,module,exports){
+/**
+ * Debounces a function by the given threshold.
+ *
+ * @see http://unscriptable.com/2009/03/20/debouncing-javascript-methods/
+ * @param {Function} function to wrap
+ * @param {Number} timeout in ms (`100`)
+ * @param {Boolean} whether to execute at the beginning (`true`)
+ * @api public
+ */
+
+module.exports = function debounce(func, threshold, execAsap){
+  var timeout;
+  if (false !== execAsap) execAsap = true;
+
+  return function debounced(){
+    var obj = this, args = arguments;
+
+    function delayed () {
+      if (!execAsap) {
+        func.apply(obj, args);
+      }
+      timeout = null;
+    }
+
+    if (timeout) {
+      clearTimeout(timeout);
+    } else if (execAsap) {
+      func.apply(obj, args);
+    }
+
+    timeout = setTimeout(delayed, threshold || 100);
+  };
+};
+
+},{}],7:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter
   , inherits = require('inherits')
 
@@ -805,37 +629,39 @@ fps.prototype.tick = function() {
 }
 
 
-},{"events":9,"inherits":11}],6:[function(require,module,exports){
-var raf = require('raf')
-  , EventEmitter = require('events').EventEmitter
+},{"events":11,"inherits":8}],8:[function(require,module,exports){
+module.exports = inherits
 
-module.exports = ticker
-
-function ticker(element, rate, limit) {
-  var millisecondsPerFrame = 1000 / (rate || 60)
-    , time = 0
-    , emitter
-
-  limit = arguments.length > 2 ? +limit + 1 : 2
-  emitter = raf(element || window).on('data', function(dt) {
-    var n = limit
-
-    time += dt
-    while (time > millisecondsPerFrame && n) {
-      time -= millisecondsPerFrame
-      n -= 1
-      emitter.emit('tick')
-    }
-    time = (time + millisecondsPerFrame * 1000) % millisecondsPerFrame
-
-    if (n !== limit) emitter.emit('draw')
+function inherits (c, p, proto) {
+  proto = proto || {}
+  var e = {}
+  ;[c.prototype, proto].forEach(function (s) {
+    Object.getOwnPropertyNames(s).forEach(function (k) {
+      e[k] = Object.getOwnPropertyDescriptor(s, k)
+    })
   })
-
-  return emitter
+  c.prototype = Object.create(p.prototype, e)
+  c.super = p
 }
 
-},{"events":9,"raf":12}],12:[function(require,module,exports){
-(function(){module.exports = raf
+//function Child () {
+//  Child.super.call(this)
+//  console.error([this
+//                ,this.constructor
+//                ,this.constructor === Child
+//                ,this.constructor.super === Parent
+//                ,Object.getPrototypeOf(this) === Child.prototype
+//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
+//                 === Parent.prototype
+//                ,this instanceof Child
+//                ,this instanceof Parent])
+//}
+//function Parent () {}
+//inherits(Child, Parent)
+//new Child
+
+},{}],9:[function(require,module,exports){
+module.exports = raf
 
 var EE = require('events').EventEmitter
   , global = typeof window === 'undefined' ? this : window
@@ -883,6 +709,336 @@ raf.polyfill = _raf
 raf.now = now
 
 
-})()
-},{"events":9}]},{},[3])
-;
+},{"events":11}],10:[function(require,module,exports){
+var raf = require('raf')
+  , EventEmitter = require('events').EventEmitter
+
+module.exports = ticker
+
+function ticker(element, rate, limit) {
+  var millisecondsPerFrame = 1000 / (rate || 60)
+    , time = 0
+    , emitter
+
+  limit = arguments.length > 2 ? +limit + 1 : 2
+  emitter = raf(element || window).on('data', function(dt) {
+    var n = limit
+
+    time += dt
+    while (time > millisecondsPerFrame && n) {
+      time -= millisecondsPerFrame
+      n -= 1
+      emitter.emit('tick')
+    }
+    time = (time + millisecondsPerFrame * 1000) % millisecondsPerFrame
+
+    if (n !== limit) emitter.emit('draw')
+  })
+
+  return emitter
+}
+
+},{"events":11,"raf":9}],11:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      }
+      throw TypeError('Uncaught, unspecified "error" event.');
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},{}]},{},[1,2,3,4,5]);
