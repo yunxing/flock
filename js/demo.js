@@ -3,6 +3,7 @@ var fps = require('fps'),
   debounce = require('debounce'),
   io = require('socket.io-client'),
   Boids = require('./'),
+  _ = require('./lodash'),
   Vector = require('./vector'),
     Boid = require('./boid');
 var socket = io.connect('http://172.16.2.150:3000');
@@ -26,9 +27,8 @@ socket.emit('join', {
   socket.on('create', function(data){
       boidsM.updateToLogicTime(data.ts);
       boidsM.updateEvent(data);
-      boids = boidsM;
-      // boids = _.cloneDeep(boidsM);
-      // boids.prototype = boidsM;
+      // boids = boidsM;
+      boids = _.cloneDeep(boidsM);
   });
 
 
@@ -77,7 +77,6 @@ window.setInterval(function(){
 ticker(window, 60).on('tick', function() {
   frames.tick();
 }).on('draw', function() {
-      console.log("here");
 
   var boidData = boids.boids,
     halfHeight = canvas.height/2,
@@ -119,7 +118,7 @@ var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
           count2 ++;
       }
   }
-  livesText.innerHTML = String(left);
+  livesText.innerHTML = String(boids.left[side]);
   countText.innerHTML = String(count);
   countText2.innerHTML = String(count2);
   fpsText.innerHTML = String(Math.round(rate));

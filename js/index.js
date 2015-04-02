@@ -15,6 +15,9 @@ function Boids(opts, callback) {
     this.width = 700;
     this.halfHeight = this.height / 2;
     this.halfWidth = this.width/2;
+    this.left = [];
+    this.left[1] = 100;
+    this.left[2] = 100;
   opts = opts || {};
   callback = callback || function(){};
 
@@ -225,9 +228,12 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 };
 
 Boids.prototype.updateEvent = function(data) {
-    this.boids.push(
-        new Boid(new Vector(data.x, data.y), new Vector(2, 2), data.side)
-    );
+    if (this.left[data.side] > 0) {
+        this.boids.push(
+            new Boid(new Vector(data.x, data.y), new Vector(0, 0), data.side)
+        );
+        this.left[data.side]--;
+    }
 };
 
 Boids.prototype.tick = function() {
