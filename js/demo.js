@@ -18,6 +18,7 @@ boids = Boids();
 socket.emit('join', {
     id: 1
 });
+
   socket.on('start', function(data){
       boids = Boids();
       boidsM = Boids();
@@ -66,13 +67,13 @@ document.body.appendChild(anchor);
 var tickTime = 16;
 
 function timeToTicks(t) {
-    return Math.floor(t / tickTime)
+    return Math.floor(t / tickTime);
 }
 
 
 window.setInterval(function(){
   boids.updateToCurrentLogicTime();
-}, 1000 / 60)
+}, 1000 / 60);
 
 ticker(window, 60).on('tick', function() {
   frames.tick();

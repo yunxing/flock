@@ -213,9 +213,14 @@ Boids.prototype.calcAlignment = function(boid) {
 var tickTime = 16;
 
 Boids.prototype.updateToLogicTime = function(newLogicTime) {
+    var count = 0;
     while (newLogicTime > this.logicTime + tickTime) {
         this.logicTime = this.logicTime + tickTime;
         this.tick();
+        count ++;
+    }
+    if (count > 10) {
+        console.log("delayed by " + count + " ticks");
     }
 };
 
@@ -229,8 +234,10 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 
 Boids.prototype.updateEvent = function(data) {
     if (this.left[data.side] > 0) {
+        x = Math.cos(data.ts);
+        y = Math.sin(data.ts);
         this.boids.push(
-            new Boid(new Vector(data.x, data.y), new Vector(0, 0), data.side)
+            new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
         );
         this.left[data.side]--;
     }
