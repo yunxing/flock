@@ -233,13 +233,12 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 };
 
 Boids.prototype.updateEvent = function(data) {
-    if (this.left[data.side] > 0) {
+    if (this.boids.length < 200) {
         x = Math.cos(data.ts);
         y = Math.sin(data.ts);
         this.boids.push(
             new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
         );
-        this.left[data.side]--;
     }
 };
 
