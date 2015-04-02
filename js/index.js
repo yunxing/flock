@@ -9,7 +9,12 @@ module.exports = Boids;
 function Boids(opts, callback) {
   if (!(this instanceof Boids)) return new Boids(opts, callback);
   EventEmitter.call(this);
-
+  this.startTime = (new Date).getTime();
+    this.logicTime = 0;
+    this.height = 700;
+    this.width = 700;
+    this.halfHeight = this.height / 2;
+    this.halfWidth = this.width/2;
   opts = opts || {};
   callback = callback || function(){};
 
@@ -33,12 +38,12 @@ function Boids(opts, callback) {
 
   var boids = this.boids = [];
 
-  for (var i = 0, l = opts.boids === undefined ? 100 : opts.boids; i < l; i += 1) {
-    boids[i] = new Boid(
-      new Vector(Math.random()*100 - 50, Math.random()*100 - 50),
-      new Vector(0, 0)
-    );
-  }
+  // for (var i = 0, l = opts.boids === undefined ? 100 : opts.boids; i < l; i += 1) {
+  //   boids[i] = new Boid(
+  //     new Vector(Math.random()*100 - 50, Math.random()*100 - 50),
+  //     new Vector(0, 0)
+  //   );
+  // }
 
   this.on('tick', function() {
     callback(boids);
@@ -202,6 +207,29 @@ Boids.prototype.calcAlignment = function(boid) {
     .limit(this.accelerationLimit);
 };
 
+var tickTime = 16;
+
+Boids.prototype.updateToLogicTime = function(newLogicTime) {
+    while (newLogicTime > this.logicTime + tickTime) {
+        this.logicTime = this.logicTime + tickTime;
+        this.tick();
+    }
+};
+
+Boids.prototype.getCurrentLogicTime = function() {
+    return (new Date).getTime() - this.startTime;
+};
+
+Boids.prototype.updateToCurrentLogicTime = function() {
+    this.updateToLogicTime(this.getCurrentLogicTime());
+};
+
+Boids.prototype.updateEvent = function(data) {
+    this.boids.push(
+        new Boid(new Vector(data.x, data.y), new Vector(2, 2), data.side)
+    );
+};
+
 Boids.prototype.tick = function() {
 
   var boid;
@@ -230,6 +258,10 @@ Boids.prototype.tick = function() {
       .limit(this.speedLimit);
 
     boid.position = boid.position.add(boid.speed);
+    x = boid.position.x;
+    y = boid.position.y;
+    boid.position.x = x > this.halfWidth ? -this.halfWidth : -x > this.halfWidth ? this.halfWidth : x;
+    boid.position.y = y > this.halfHeight ? -this.halfHeight : -y > this.halfHeight ? this.halfHeight : y;
     delete boid.acceleration;
   }
     var newBoids = [];
@@ -244,7 +276,7 @@ Boids.prototype.tick = function() {
           newBoids.push(boid);
       }
   }
-    this.boids = newBoids;
+  this.boids = newBoids;
 
   this.emit('tick', this.boids);
 };

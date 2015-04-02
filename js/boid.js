@@ -5,12 +5,11 @@ function Boid(position, speed, side) {
   this.position = position;
   this.speed = speed;
   this.hp = 10;
-
-    if (!side) {
-        this.side = 1;
-    } else {
-        this.side = side;
-    }
+  if (!side) {
+      this.side = 1;
+  } else {
+      this.side = side;
+  }
 
 }
 

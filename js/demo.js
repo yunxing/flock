@@ -1,33 +1,52 @@
 var fps = require('fps'),
   ticker = require('ticker'),
   debounce = require('debounce'),
+  io = require('socket.io-client'),
   Boids = require('./'),
   Vector = require('./vector'),
-  Boid = require('./boid');
+    Boid = require('./boid');
+var socket = io.connect('http://172.16.2.150:3000');
 
 
 var anchor = document.createElement('a'),
   canvas = document.createElement('canvas'),
-  ctx = canvas.getContext('2d'),
-  boids = Boids();
+    ctx = canvas.getContext('2d');
+
+var side = 1;
+boids = Boids();
+socket.emit('join', {
+    id: 1
+});
+  socket.on('start', function(data){
+      boids = Boids();
+      boidsM = Boids();
+      side = data.side;
+  });
+
+  socket.on('create', function(data){
+      boidsM.updateToLogicTime(data.ts);
+      boidsM.updateEvent(data);
+      boids = boidsM;
+      // boids = _.cloneDeep(boidsM);
+      // boids.prototype = boidsM;
+  });
+
 
 var left = 100;
 
 canvas.addEventListener('click', function(e) {
   var x = e.pageX,
     y = e.pageY,
-    halfHeight = canvas.height/2,
-    halfWidth = canvas.width/2;
-  x = x - halfWidth;
-  y = y - halfHeight;
-    for (var i = -2; i < 3; ++i) {
-        if (left > 0) {
-            boids.boids.push(
-                new Boid(new Vector(x+i*10, y+i*10), new Vector(Math.random()*6-3,Math.random()*6-3), 2)
-            );
-            left --;
-        }
-    }
+    halfHeight = 700/2,
+    halfWidth = 700/2;
+    x = x - halfWidth;
+    y = y - halfHeight;
+
+    socket.emit('create', {
+        x:x,
+        y:y,
+        side:side
+    });
 });
 
 // window.onresize = debounce(function() {
@@ -44,10 +63,22 @@ document.body.style.margin = '0';
 document.body.style.padding = '0';
 document.body.appendChild(anchor);
 
+var tickTime = 16;
+
+function timeToTicks(t) {
+    return Math.floor(t / tickTime)
+}
+
+
+window.setInterval(function(){
+  boids.updateToCurrentLogicTime();
+}, 1000 / 60)
+
 ticker(window, 60).on('tick', function() {
   frames.tick();
-  boids.tick();
 }).on('draw', function() {
+      console.log("here");
+
   var boidData = boids.boids,
     halfHeight = canvas.height/2,
     halfWidth = canvas.width/2;
@@ -62,9 +93,6 @@ ticker(window, 60).on('tick', function() {
           ctx.fillStyle = 'rgba(255,0,0,0.25)'; // '#FFF1EB'
       }
     x = boidData[i].position.x; y = boidData[i].position.y;
-    // wrap around the screen
-    boidData[i].position.x = x > halfWidth ? -halfWidth : -x > halfWidth ? halfWidth : x;
-    boidData[i].position.y = y > halfHeight ? -halfHeight : -y > halfHeight ? halfHeight : y;
     ctx.fillRect(x + halfWidth, y + halfHeight, 2, 2);
   }
 });
