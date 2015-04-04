@@ -14,7 +14,7 @@ var anchor = document.createElement('a'),
     ctx = canvas.getContext('2d');
 
 var side = 1;
-boids = Boids();
+var boids = Boids();
 var boidsM;
 socket.emit('join', {
     id: 1

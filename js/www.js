@@ -9,7 +9,7 @@ var Boids = require('./');
 
 var startTime = (new Date).getTime();
 
-boids = Boids();
+var boids = Boids();
 
 function handler (req, res) {
   if (req.url == "/") {
