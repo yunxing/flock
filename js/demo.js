@@ -5,9 +5,9 @@ var fps = require('fps'),
   Boids = require('./'),
   _ = require('./lodash'),
   Vector = require('./vector'),
-    Boid = require('./boid');
-var socket = io.connect('http://172.16.2.150:3000');
+  Boid = require('./boid');
 
+var socket = io.connect(window.location.href);
 
 var anchor = document.createElement('a'),
   canvas = document.createElement('canvas'),
@@ -15,23 +15,35 @@ var anchor = document.createElement('a'),
 
 var side = 1;
 boids = Boids();
+var boidsM;
 socket.emit('join', {
     id: 1
 });
 
   socket.on('start', function(data){
-      boids = Boids();
-      boidsM = Boids();
-      side = data.side;
+    boids = new Boids();
+    _.extend(boids, data.boids);
+    boids.extend();
+    boidsM = _.cloneDeep(boids);
+    side = data.side;
+  });
+
+  socket.on('update', function(data){
+    if (boidsM) {
+      boidsM.updateToLogicTime(data.ts);
+      console.log("boidsM");
+      console.log(boidsM);
+      console.log("boids");
+      console.log(boids);
+    }
   });
 
   socket.on('create', function(data){
+    console.log(data);
       boidsM.updateToLogicTime(data.ts);
       boidsM.updateEvent(data);
-      // boids = boidsM;
       boids = _.cloneDeep(boidsM);
   });
-
 
 var left = 100;
 

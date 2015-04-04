@@ -2,6 +2,7 @@ var EventEmitter = require('events').EventEmitter,
   inherits = require('inherits'),
   Vector = require('./vector'),
   Dtree = require('./dtree'),
+  _ = require('./lodash'),
   Boid = require('./boid');
 
 module.exports = Boids;
@@ -213,19 +214,31 @@ Boids.prototype.calcAlignment = function(boid) {
 var tickTime = 16;
 
 Boids.prototype.updateToLogicTime = function(newLogicTime) {
-    var count = 0;
-    while (newLogicTime > this.logicTime + tickTime) {
-        this.logicTime = this.logicTime + tickTime;
-        this.tick();
-        count ++;
-    }
-    if (count > 10) {
-        console.log("delayed by " + count + " ticks");
-    }
+  var count = 0;
+  if (newLogicTime <= this.logicTime) {
+    console.log("gone too far");
+  }
+  while (newLogicTime > this.logicTime + tickTime) {
+    this.logicTime = this.logicTime + tickTime;
+    this.tick();
+    count ++;
+  }
 };
 
 Boids.prototype.getCurrentLogicTime = function() {
     return (new Date).getTime() - this.startTime;
+};
+
+Boids.prototype.extend = function() {
+  var extendedBoids = [];
+
+  for(var i=0; i<this.boids.length; i++) {
+    var b = new Boid();
+    _.extend(b, this.boids[i]);
+    b.extend();
+    extendedBoids.push(b);
+  }
+  this.boids = extendedBoids;
 };
 
 Boids.prototype.updateToCurrentLogicTime = function() {

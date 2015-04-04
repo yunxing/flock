@@ -1,4 +1,5 @@
-
+var  _ = require('./lodash'),
+    Vector = require('./vector');
 module.exports = Boid;
 
 function Boid(position, speed, side) {
@@ -15,6 +16,15 @@ function Boid(position, speed, side) {
 
 Boid.prototype.compare = function(that, isEven) {
   return this.position.compare(that.position, isEven);
+};
+
+Boid.prototype.extend = function() {
+  var s = new Vector();
+  _.extend(s, this.speed);
+  this.speed = s;
+  var p = new Vector();
+  _.extend(p, this.position);
+  this.position = p;
 };
 
 Boid.prototype.toString = function() {

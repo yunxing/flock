@@ -9,12 +9,13 @@ Vector.prototype.add = function(v) {
 };
 
 Vector.prototype.distSquared = function(v) {
-  return Math.pow(this.x - v.x, 2) + 
+  return Math.pow(this.x - v.x, 2) +
     Math.pow(this.y - v.y, 2);
 };
 
 Vector.prototype.distance = function(v) {
-  return Math.sqrt(this.distSquared(v));
+  var r = Math.sqrt(this.distSquared(v));
+  return r;
 };
 
 Vector.prototype.multiplyBy = function(s) {
@@ -31,7 +32,7 @@ Vector.prototype.magnitude = function() {
 
 Vector.prototype.normalize = function() {
   var magnitude = this.magnitude();
-  
+
   if(magnitude === 0)
     return new Vector(0, 0);
 

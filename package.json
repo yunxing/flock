@@ -21,7 +21,7 @@
   "scripts": {
     "test": "jshint js/ test/ && mocha test",
     "prepublish": "browserify js/demo.js -o bundle.js",
-    "start": "beefy js/demo.js:bundle.js"
+    "start": "./js/www.js"
   },
   "repository": {
     "type": "git",
