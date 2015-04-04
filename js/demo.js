@@ -31,10 +31,8 @@ socket.emit('join', {
   socket.on('update', function(data){
     if (boidsM) {
       boidsM.updateToLogicTime(data.ts);
-      console.log("boidsM");
-      console.log(boidsM);
-      console.log("boids");
-      console.log(boids);
+      console.log("boidsM",JSON.parse(JSON.stringify(data.ts)), JSON.parse(JSON.stringify(boidsM)))
+      console.log("boids",JSON.parse(JSON.stringify(data.ts)), JSON.parse(JSON.stringify(boids)))
     }
   });
 
