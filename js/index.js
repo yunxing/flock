@@ -119,7 +119,8 @@ Boids.prototype.calcSeparation = function(boid) {
           .subtract(boid.position)
           .normalize()
           .divideBy(
-            target.position.distance(boid.position)
+            // cannot divide by 0
+            target.position.distance(boid.position) + 0.0000001
           )
       );
       count++;
