@@ -241,12 +241,13 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 };
 
 Boids.prototype.updateEvent = function(data) {
-  if (this.boids.length < 200) {
+  if (this.left[data.side] > 0) {
     x = Math.floor(Math.cos(data.ts) * 100);
     y = Math.floor(Math.sin(data.ts) * 100);
     this.boids.push(
       new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
     );
+    this.left[data.side]--;
   }
 };
 

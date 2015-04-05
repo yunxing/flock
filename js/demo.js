@@ -112,6 +112,7 @@ var fpsText = document.querySelector('[data-fps]');
 var countText = document.querySelector('[data-count]');
 var countText2 = document.querySelector('[data-count2]');
 var livesText = document.querySelector('[data-left]');
+var hashText = document.querySelector('[data-hash]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   if (!boids) return;
   var count = 0;
@@ -126,6 +127,8 @@ var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   }
   livesText.innerHTML = String(boids.left[side]);
   countText.innerHTML = String(count);
-  countText2.innerHTML = String(boidsM.hash());
+  countText2.innerHTML = String(count2);
   fpsText.innerHTML = String(boidsM.ticks);
+  hashText.innerHTML = String(boidsM.hash());
+
 });
