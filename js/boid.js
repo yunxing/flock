@@ -5,7 +5,8 @@ module.exports = Boid;
 function Boid(position, speed, side) {
   this.position = position;
   this.speed = speed;
-  this.hp = 10;
+  this.maxHP = 60;
+  this.hp = this.maxHP;
   if (!side) {
       this.side = 1;
   } else {

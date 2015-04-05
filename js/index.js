@@ -40,7 +40,6 @@ function Boids(opts, callback) {
   this.maxDistSq = Math.max(this.separationDistanceSq,
                             this.cohesionDistanceSq, this.alignmentDistanceSq,
                             this.enemyDistanceSq);
-
   var boids = this.boids = [];
 
   this.on('tick', function() {
@@ -295,13 +294,12 @@ Boids.prototype.tick = function() {
     //    delete boid.acceleration;
   }
   var newBoids = [];
-
   for(var j=0; j<this.boids.length; j++) {
     boid = this.boids[j];
     if (boid.hp > 0) {
       boid.hp += 0.1;
-      if (boid.hp > 100) {
-        boid.hp = 100;
+      if (boid.hp > boid.maxHP) {
+        boid.hp = boid.maxHP;
       }
       newBoids.push(boid);
     }
