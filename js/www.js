@@ -9,7 +9,7 @@ var Boids = require('./');
 
 var startTime = (new Date).getTime();
 
-var boids = Boids();
+var boids = new Boids();
 
 function handler (req, res) {
   if (req.url == "/") {
@@ -49,11 +49,13 @@ var numberOfPlayer = 0;
 io.on('connection', function (socket) {
   socket.on('join', function(data) {
     numberOfPlayer ++;
-    console.log('Player ' + data.id + ' has joined');
-        socket.emit('start', {
-          side: numberOfPlayer % 2 + 1,
-          boids: boids
-        });
+    var ts = (new Date).getTime() - startTime;
+    boids.updateToLogicTime(ts);
+    console.log('Player ' + numberOfPlayer + ' has joined');
+    socket.emit('start', {
+      side: numberOfPlayer % 2 + 1,
+      boids: boids
+    });
   });
   socket.on('create', function(data){
     data.ts = (new Date).getTime() - startTime;
@@ -66,7 +68,6 @@ io.on('connection', function (socket) {
 setInterval(function(){
   var ts = (new Date).getTime() - startTime;
   boids.updateToLogicTime(ts);
-  console.log(boids);
   io.emit('update', {
     ts:ts
   });

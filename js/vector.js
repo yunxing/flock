@@ -14,8 +14,7 @@ Vector.prototype.distSquared = function(v) {
 };
 
 Vector.prototype.distance = function(v) {
-  var r = Math.sqrt(this.distSquared(v));
-  return r;
+  return Math.sqrt(this.distSquared(v));
 };
 
 Vector.prototype.multiplyBy = function(s) {
@@ -48,8 +47,9 @@ Vector.prototype.divideBy = function(s) {
 };
 
 Vector.prototype.limit = function(s) {
-  if(this.magnitude() > s)
+  if(this.magnitude() > s) {
     return this.normalize().multiplyBy(s);
+  }
 
   return this;
 };

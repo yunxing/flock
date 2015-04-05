@@ -1,9 +1,9 @@
 var EventEmitter = require('events').EventEmitter,
-  inherits = require('inherits'),
-  Vector = require('./vector'),
-  Dtree = require('./dtree'),
-  _ = require('./lodash'),
-  Boid = require('./boid');
+    inherits = require('inherits'),
+    Vector = require('./vector'),
+    Dtree = require('./dtree'),
+    _ = require('./lodash'),
+    Boid = require('./boid');
 
 module.exports = Boids;
 
@@ -11,14 +11,15 @@ function Boids(opts, callback) {
   if (!(this instanceof Boids)) return new Boids(opts, callback);
   EventEmitter.call(this);
   this.startTime = (new Date).getTime();
-    this.logicTime = 0;
-    this.height = 700;
-    this.width = 700;
-    this.halfHeight = this.height / 2;
-    this.halfWidth = this.width/2;
-    this.left = [];
-    this.left[1] = 100;
-    this.left[2] = 100;
+  this.logicTime = 0;
+  this.height = 700;
+  this.width = 700;
+  this.halfHeight = this.height / 2;
+  this.halfWidth = this.width/2;
+  this.left = [];
+  this.left[1] = 100;
+  this.left[2] = 100;
+  this.ticks = 0;
   opts = opts || {};
   callback = callback || function(){};
 
@@ -42,13 +43,6 @@ function Boids(opts, callback) {
 
   var boids = this.boids = [];
 
-  // for (var i = 0, l = opts.boids === undefined ? 100 : opts.boids; i < l; i += 1) {
-  //   boids[i] = new Boid(
-  //     new Vector(Math.random()*100 - 50, Math.random()*100 - 50),
-  //     new Vector(0, 0)
-  //   );
-  // }
-
   this.on('tick', function() {
     callback(boids);
   });
@@ -71,10 +65,10 @@ Boids.prototype.findNeighbors = function(point) {
 
 Boids.prototype.calcCohesion = function(boid) {
   var total = new Vector(0, 0),
-    distSq,
-    target,
-    neighbors = this.tickData.neighbors,
-    count = 0;
+      distSq,
+      target,
+      neighbors = this.tickData.neighbors,
+      count = 0;
 
   for(var i=0; i<neighbors.length; i++) {
     target = neighbors[i].neighbor;
@@ -86,7 +80,7 @@ Boids.prototype.calcCohesion = function(boid) {
 
     distSq = neighbors[i].distSq;
     if(distSq < this.cohesionDistanceSq &&
-        isInFrontOf(boid, target.position)) {
+       isInFrontOf(boid, target.position)) {
       total = total.add(target.position);
       count++;
     }
@@ -105,10 +99,10 @@ Boids.prototype.calcCohesion = function(boid) {
 
 Boids.prototype.calcSeparation = function(boid) {
   var total = new Vector(0, 0),
-    target,
-    distSq,
-    neighbors = this.tickData.neighbors,
-    count = 0;
+      target,
+      distSq,
+      neighbors = this.tickData.neighbors,
+      count = 0;
 
   for(var i=0; i<neighbors.length; i++) {
     target = neighbors[i].neighbor;
@@ -127,11 +121,12 @@ Boids.prototype.calcSeparation = function(boid) {
           .divideBy(
             target.position.distance(boid.position)
           )
-        );
+      );
       count++;
     }
 
   }
+
 
   if(count === 0)
     return new Vector(0, 0);
@@ -145,10 +140,10 @@ Boids.prototype.calcSeparation = function(boid) {
 
 Boids.prototype.calcEnemy = function(boid) {
   var total = new Vector(0, 0),
-    target,
-    distSq,
-    neighbors = this.tickData.neighbors,
-    count = 0;
+      target,
+      distSq,
+      neighbors = this.tickData.neighbors,
+      count = 0;
 
   for(var i=0; i<neighbors.length; i++) {
     target = this.tickData.neighbors[i].neighbor;
@@ -160,14 +155,14 @@ Boids.prototype.calcEnemy = function(boid) {
 
     distSq = neighbors[i].distSq;
     if (distSq < 4) {
-        boid.hp -= 1;
-        target.hp -= 1;
+      boid.hp -= 1;
+      target.hp -= 1;
     }
     if(distSq < this.enemyDistanceSq ) {
       total = total.add(target.position
                         .subtract(boid.position).normalize());
       count++;
-        break;
+      break;
     }
   }
 
@@ -183,10 +178,10 @@ Boids.prototype.calcEnemy = function(boid) {
 
 Boids.prototype.calcAlignment = function(boid) {
   var total = new Vector(0, 0),
-    target,
-    distSq,
-    neighbors = this.tickData.neighbors,
-    count = 0;
+      target,
+      distSq,
+      neighbors = this.tickData.neighbors,
+      count = 0;
 
   for(var i=0; i<neighbors.length; i++) {
     target = this.tickData.neighbors[i].neighbor;
@@ -195,7 +190,7 @@ Boids.prototype.calcAlignment = function(boid) {
 
     distSq = neighbors[i].distSq;
     if(distSq < this.alignmentDistanceSq &&
-        isInFrontOf(boid, target.position)) {
+       isInFrontOf(boid, target.position)) {
       total = total.add(target.speed);
       count++;
     }
@@ -226,7 +221,7 @@ Boids.prototype.updateToLogicTime = function(newLogicTime) {
 };
 
 Boids.prototype.getCurrentLogicTime = function() {
-    return (new Date).getTime() - this.startTime;
+  return (new Date).getTime() - this.startTime;
 };
 
 Boids.prototype.extend = function() {
@@ -242,21 +237,31 @@ Boids.prototype.extend = function() {
 };
 
 Boids.prototype.updateToCurrentLogicTime = function() {
-    this.updateToLogicTime(this.getCurrentLogicTime());
+  this.updateToLogicTime(this.getCurrentLogicTime());
 };
 
 Boids.prototype.updateEvent = function(data) {
-    if (this.boids.length < 200) {
-        x = Math.cos(data.ts);
-        y = Math.sin(data.ts);
-        this.boids.push(
-            new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
-        );
-    }
+  if (this.boids.length < 200) {
+    x = Math.floor(Math.cos(data.ts) * 100);
+    y = Math.floor(Math.sin(data.ts) * 100);
+    this.boids.push(
+      new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
+    );
+  }
 };
 
-Boids.prototype.tick = function() {
+Boids.prototype.hash = function() {
+  var boidData = this.boids;
+  var sum = 0;
+  for (var i = 0, l = boidData.length; i < l; i += 1) {
+    sum += boidData[i].position.x;
+  }
+  return sum;
+}
 
+var p = false;
+Boids.prototype.tick = function() {
+  this.ticks++;
   var boid;
   this.init();
 
@@ -267,11 +272,11 @@ Boids.prototype.tick = function() {
     boid.acceleration = this.calcCohesion(boid)
       .multiplyBy(this.cohesionForce)
       .add(this.calcAlignment(boid)
-        .multiplyBy(this.alignmentForce))
+           .multiplyBy(this.alignmentForce))
       .add(this.calcEnemy(boid)
-        .multiplyBy(this.enemyForce))
+           .multiplyBy(this.enemyForce))
       .subtract(this.calcSeparation(boid)
-        .multiplyBy(this.separationForce));
+                .multiplyBy(this.separationForce))
   }
 
   delete this.tickData;
@@ -281,29 +286,26 @@ Boids.prototype.tick = function() {
     boid.speed = boid.speed
       .add(boid.acceleration)
       .limit(this.speedLimit);
-
     boid.position = boid.position.add(boid.speed);
     x = boid.position.x;
     y = boid.position.y;
     boid.position.x = x > this.halfWidth ? -this.halfWidth : -x > this.halfWidth ? this.halfWidth : x;
     boid.position.y = y > this.halfHeight ? -this.halfHeight : -y > this.halfHeight ? this.halfHeight : y;
-    delete boid.acceleration;
+    //    delete boid.acceleration;
   }
-    var newBoids = [];
+  var newBoids = [];
 
   for(var j=0; j<this.boids.length; j++) {
     boid = this.boids[j];
-      if (boid.hp > 0) {
-          boid.hp += 0.1;
-          if (boid.hp > 100) {
-              boid.hp = 100;
-          }
-          newBoids.push(boid);
+    if (boid.hp > 0) {
+      boid.hp += 0.1;
+      if (boid.hp > 100) {
+        boid.hp = 100;
       }
+      newBoids.push(boid);
+    }
   }
   this.boids = newBoids;
-
-  this.emit('tick', this.boids);
 };
 
 function isInFrontOf(boid, point) {
