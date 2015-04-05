@@ -24,6 +24,8 @@ socket.on('start', function(data){
   boids = new Boids();
   _.extend(boids, data.boids);
   boids.extend();
+  // startTime based on localTime
+  boids.startTime = (new Date).getTime() - boids.logicTime
   boidsM = _.cloneDeep(boids);
   side = data.side;
 });
