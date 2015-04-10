@@ -7,9 +7,15 @@ var app = require('http').createServer(handler);
 var fs = require('fs');
 var Boids = require('./');
 
-var startTime = (new Date).getTime();
+var startTime;
 
-var boids = new Boids();
+var boids;
+
+function init() {
+  startTime = (new Date).getTime();
+  boids = new Boids();
+}
+init();
 
 function handler (req, res) {
   if (req.url == "/") {
@@ -54,21 +60,32 @@ io.on('connection', function (socket) {
     console.log('Player ' + numberOfPlayer + ' has joined');
     socket.emit('start', {
       side: numberOfPlayer % 2 + 1,
-      boids: boids
+      boids: boids,
+      player: numberOfPlayer,
+      ts: data.ts
     });
   });
   socket.on('create', function(data){
     data.ts = (new Date).getTime() - startTime;
     boids.updateToLogicTime(data.ts);
     boids.updateEvent(data);
-    io.sockets.emit('create', data);
+    io.sockets.emit('event', data);
   });
 });
 
 setInterval(function(){
   var ts = (new Date).getTime() - startTime;
   boids.updateToLogicTime(ts);
-  io.emit('update', {
-    ts:ts
-  });
+  if (boids.end()) {
+    data = {
+      ts:ts,
+      type:"reset"
+    };
+    boids.updateEvent(data);
+    io.emit('event', data);
+  } else {
+    io.emit('update', {
+      ts:ts
+    });
+  }
 }, 1000)

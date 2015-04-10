@@ -14,10 +14,11 @@ var anchor = document.createElement('a'),
     ctx = canvas.getContext('2d');
 
 var side = 1;
+var player = 0;
 boids = undefined;
 boidsM = undefined;
 socket.emit('join', {
-  id: 1
+  ts: (new Date).getTime()
 });
 
 socket.on('start', function(data){
@@ -25,9 +26,10 @@ socket.on('start', function(data){
   _.extend(boids, data.boids);
   boids.extend();
   // startTime based on localTime
-  boids.startTime = (new Date).getTime() - boids.logicTime
+  boids.startTime = (new Date).getTime() - (boids.logicTime + Math.floor(((new Date).getTime() - data.ts) / 2))
   boidsM = _.cloneDeep(boids);
   side = data.side;
+  player = data.player;
 });
 
 socket.on('update', function(data){
@@ -36,7 +38,7 @@ socket.on('update', function(data){
   }
 });
 
-socket.on('create', function(data){
+socket.on('event', function(data){
   boidsM.updateToLogicTime(data.ts);
   boidsM.updateEvent(data);
   boids = _.cloneDeep(boidsM);
@@ -56,6 +58,7 @@ canvas.addEventListener('click', function(e) {
     x:x,
     y:y,
     side:side,
+    player:player,
     seq:seq++
   });
 });
@@ -98,10 +101,13 @@ ticker(window, 60).on('tick', function() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#543D5E';
   for (var i = 0, l = boidData.length, x, y; i < l; i += 1) {
-    if (boidData[i].side == 1) {
-      ctx.fillStyle = '#543D5E';
+    if (boidData[i].side == side) {
+      ctx.fillStyle = 'rgb(0,0,0)';
     } else {
-      ctx.fillStyle = 'rgb(255,0,0)'; // '#FFF1EB'
+      ctx.fillStyle = 'rgb(255,0,0)';
+    }
+    if (boidData[i].player == player) {
+      ctx.fillStyle = 'rgb(0,0,255)';
     }
     x = boidData[i].position.x; y = boidData[i].position.y;
     ctx.fillRect(x + halfWidth, y + halfHeight, 2, 2);
@@ -115,20 +121,11 @@ var livesText = document.querySelector('[data-left]');
 var hashText = document.querySelector('[data-hash]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   if (!boids) return;
-  var count = 0;
-  var count2 = 0;
-  var boidData = boids.boids;
-  for (var i = 0, l = boidData.length, x, y; i < l; i += 1) {
-    if (boidData[i].side == 1) {
-      count ++;
-    } else {
-      count2 ++;
-    }
-  }
+  var count = boids.count(1);
+  var count2 = boids.count(2);
   livesText.innerHTML = String(boids.left[side]);
   countText.innerHTML = String(count);
   countText2.innerHTML = String(count2);
   fpsText.innerHTML = String(boidsM.ticks);
   hashText.innerHTML = String(boidsM.hash());
-
 });

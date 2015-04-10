@@ -17,8 +17,8 @@ function Boids(opts, callback) {
   this.halfHeight = this.height / 2;
   this.halfWidth = this.width/2;
   this.left = [];
-  this.left[1] = 100;
-  this.left[2] = 100;
+  this.left[1] = 10;
+  this.left[2] = 10;
   this.ticks = 0;
   opts = opts || {};
   callback = callback || function(){};
@@ -58,8 +58,8 @@ Boids.prototype.init = function() {
   this.tickData.dtree = dtree;
 };
 
-Boids.prototype.findNeighbors = function(point) {
-  this.tickData.neighbors = this.tickData.dtree.neighbors(point, this.maxDistSq);
+Boids.prototype.findNeighbors = function(point, distance) {
+  this.tickData.neighbors = this.tickData.dtree.neighbors(point, distance);
 };
 
 Boids.prototype.calcCohesion = function(boid) {
@@ -158,7 +158,7 @@ Boids.prototype.calcEnemy = function(boid) {
       boid.hp -= 1;
       target.hp -= 1;
     }
-    if(distSq < this.enemyDistanceSq ) {
+    if(distSq < boid.alarmRange ) {
       total = total.add(target.position
                         .subtract(boid.position).normalize());
       count++;
@@ -166,8 +166,13 @@ Boids.prototype.calcEnemy = function(boid) {
     }
   }
 
-  if (count === 0)
+  if (count === 0) {
+    // If cannot find any enemies nearby, increase alarm
+    boid.increaseAlarm();
     return new Vector(0, 0);
+  }
+
+  boid.decreaseAlarm();
 
   return total
     .divideBy(count)
@@ -241,15 +246,39 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 };
 
 Boids.prototype.updateEvent = function(data) {
+  if (data.type == "reset") {
+    this.reset();
+    return;
+  }
   if (this.left[data.side] > 0) {
     x = Math.floor(Math.cos(data.ts) * 100);
     y = Math.floor(Math.sin(data.ts) * 100);
     this.boids.push(
-      new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side)
+        new Boid(new Vector(data.x, data.y), new Vector(x, y).normalize(), data.side, data.player)
     );
     this.left[data.side]--;
   }
 };
+
+Boids.prototype.count = function(side) {
+  var boidData = this.boids;
+  var sum = 0;
+  for (var i = 0, l = boidData.length; i < l; i += 1) {
+    if (side == boidData[i].side) {
+      sum++;
+    }
+  }
+  return sum;
+}
+
+Boids.prototype.end = function() {
+  sideOneCount = this.count(1);
+  sideTwoCount = this.count(2);
+  if ((sideOneCount == 0 || sideTwoCount == 0) && this.left[1] == 0 && this.left[2] == 0) {
+    return true;
+  }
+  return false;
+}
 
 Boids.prototype.hash = function() {
   var boidData = this.boids;
@@ -260,6 +289,13 @@ Boids.prototype.hash = function() {
   return sum;
 }
 
+Boids.prototype.reset = function() {
+  this.left = [];
+  this.left[1] = 10;
+  this.left[2] = 10;
+  this.boids = [];
+}
+
 var p = false;
 Boids.prototype.tick = function() {
   this.ticks++;
@@ -268,8 +304,7 @@ Boids.prototype.tick = function() {
 
   for(var i=0; i<this.boids.length; i++) {
     boid = this.boids[i];
-    this.findNeighbors(boid.position);
-
+    this.findNeighbors(boid.position, boid.alarmRange);
     boid.acceleration = this.calcCohesion(boid)
       .multiplyBy(this.cohesionForce)
       .add(this.calcAlignment(boid)
