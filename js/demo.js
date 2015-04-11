@@ -114,12 +114,13 @@ ticker(window, 60).on('tick', function() {
   }
 });
 
-var fpsText = document.querySelector('[data-fps]');
+// var fpsText = document.querySelector('[data-fps]');
 var countText = document.querySelector('[data-count]');
 var countText2 = document.querySelector('[data-count2]');
 var livesText = document.querySelector('[data-left]');
-var hashText = document.querySelector('[data-hash]');
+// var hashText = document.querySelector('[data-hash]');
 var winnerText = document.querySelector('[data-winner]');
+var teamText = document.querySelector('[data-team]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   if (!boids) return;
   var count = boids.count(1);
@@ -127,8 +128,9 @@ var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   livesText.innerHTML = String(boids.left[side]);
   countText.innerHTML = String(count);
   countText2.innerHTML = String(count2);
-  fpsText.innerHTML = String(boidsM.ticks);
-  hashText.innerHTML = String(boidsM.hash());
+  // fpsText.innerHTML = String(boidsM.ticks);
+  // hashText.innerHTML = String(boidsM.hash());
+  teamText.innerHTML = String(side);
   if (boids.lastWinner != 0) {
     if (boids.lastWinner == side) {
       winnerText.innerHTML = "Your team won last time!";

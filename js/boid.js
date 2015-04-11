@@ -4,11 +4,11 @@ module.exports = Boid;
 
 function Boid(position, speed, side, player) {
   this.position = position;
-  this.maxAlarm = 700;
-  this.maxAlarmSq = 700*700;
+  this.maxAlarm = 100;
+  this.maxAlarmSq = 100*100;
   this.speed = speed;
   this.maxHP = 60;
-  this.alarmRange = 0;
+  this.alarmRange = 30 * 30;
   this.hp = this.maxHP;
   if (!side) {
       this.side = 1;
@@ -35,14 +35,14 @@ Boid.prototype.extend = function() {
 };
 
 Boid.prototype.increaseAlarm = function() {
-  this.alarmRange+=100;
+  this.alarmRange+=10;
   if (this.alarmRange > this.maxAlarmSq) {
     this.alarmRange = this.maxAlarmSq
   }
 }
 
 Boid.prototype.decreaseAlarm = function() {
-  this.alarmRange-=100;
+  this.alarmRange-=10;
   if (this.alarmRange < 0) {
     this.alarmRange=0;
   }
