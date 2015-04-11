@@ -12,14 +12,14 @@ function Boids(opts, callback) {
   EventEmitter.call(this);
   this.startTime = (new Date).getTime();
   this.logicTime = 0;
-  this.height = 700;
-  this.width = 700;
+  this.width = 300;
+  this.height = 500;
   this.lastWinner = 0;
   this.halfHeight = this.height / 2;
   this.halfWidth = this.width/2;
   this.left = [];
-  this.left[1] = 50;
-  this.left[2] = 50;
+  this.left[1] = 10;
+  this.left[2] = 10;
   this.ticks = 0;
   opts = opts || {};
   callback = callback || function(){};

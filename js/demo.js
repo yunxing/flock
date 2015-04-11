@@ -49,8 +49,8 @@ var seq = 0;
 canvas.addEventListener('click', function(e) {
   var x = e.pageX,
       y = e.pageY,
-      halfHeight = 700/2,
-      halfWidth = 700/2;
+      halfWidth = 300/2;
+      halfHeight = 500/2,
   x = x - halfWidth;
   y = y - halfHeight;
 
@@ -69,8 +69,8 @@ canvas.addEventListener('click', function(e) {
 // }, 100);
 // window.onresize();
 
-canvas.width = 700;
-canvas.height = 700;
+canvas.width = 300;
+canvas.height = 500;
 anchor.setAttribute('href', '#');
 anchor.appendChild(canvas);
 document.body.style.margin = '0';
@@ -131,9 +131,9 @@ var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   hashText.innerHTML = String(boidsM.hash());
   if (boids.lastWinner != 0) {
     if (boids.lastWinner == side) {
-      winnerText.innerHTML = "You won last time!";
+      winnerText.innerHTML = "Your team won last time!";
     } else {
-      winnerText.innerHTML = "You lose last time!";
+      winnerText.innerHTML = "Your team lose last time!";
     }
   }
 
