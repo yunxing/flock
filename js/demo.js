@@ -119,6 +119,7 @@ var countText = document.querySelector('[data-count]');
 var countText2 = document.querySelector('[data-count2]');
 var livesText = document.querySelector('[data-left]');
 var hashText = document.querySelector('[data-hash]');
+var winnerText = document.querySelector('[data-winner]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   if (!boids) return;
   var count = boids.count(1);
@@ -128,4 +129,12 @@ var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   countText2.innerHTML = String(count2);
   fpsText.innerHTML = String(boidsM.ticks);
   hashText.innerHTML = String(boidsM.hash());
+  if (boids.lastWinner != 0) {
+    if (boids.lastWinner == side) {
+      winnerText.innerHTML = "You won last time!";
+    } else {
+      winnerText.innerHTML = "You lose last time!";
+    }
+  }
+
 });

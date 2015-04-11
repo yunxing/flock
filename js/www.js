@@ -79,6 +79,7 @@ setInterval(function(){
   if (boids.end()) {
     data = {
       ts:ts,
+      lastWinner:boids.lastWinner,
       type:"reset"
     };
     boids.updateEvent(data);

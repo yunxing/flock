@@ -14,11 +14,12 @@ function Boids(opts, callback) {
   this.logicTime = 0;
   this.height = 700;
   this.width = 700;
+  this.lastWinner = 0;
   this.halfHeight = this.height / 2;
   this.halfWidth = this.width/2;
   this.left = [];
-  this.left[1] = 10;
-  this.left[2] = 10;
+  this.left[1] = 50;
+  this.left[2] = 50;
   this.ticks = 0;
   opts = opts || {};
   callback = callback || function(){};
@@ -247,7 +248,7 @@ Boids.prototype.updateToCurrentLogicTime = function() {
 
 Boids.prototype.updateEvent = function(data) {
   if (data.type == "reset") {
-    this.reset();
+    this.reset(data.lastWinner);
     return;
   }
   if (this.left[data.side] > 0) {
@@ -274,7 +275,12 @@ Boids.prototype.count = function(side) {
 Boids.prototype.end = function() {
   sideOneCount = this.count(1);
   sideTwoCount = this.count(2);
-  if ((sideOneCount == 0 || sideTwoCount == 0) && this.left[1] == 0 && this.left[2] == 0) {
+  if (sideOneCount == 0 && this.left[1] == 0) {
+    this.lastWinner=2
+    return true;
+  }
+  if (sideTwoCount == 0 && this.left[2] == 0) {
+    this.lastWinner=1
     return true;
   }
   return false;
@@ -289,11 +295,12 @@ Boids.prototype.hash = function() {
   return sum;
 }
 
-Boids.prototype.reset = function() {
+Boids.prototype.reset = function(lastWinner) {
   this.left = [];
   this.left[1] = 10;
   this.left[2] = 10;
   this.boids = [];
+  this.lastWinner = lastWinner
 }
 
 var p = false;
