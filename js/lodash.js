@@ -1767,7 +1767,7 @@
       (isArr ? arrayEach : baseForOwn)(value, function(subValue, key) {
         result[key] = baseClone(subValue, isDeep, customizer, key, value, stackA, stackB);
       });
-      Object.setPrototypeOf(result, Object.getPrototypeOf(value));
+      result.__proto__ = Object.getPrototypeOf(value);
       return result;
     }
 
