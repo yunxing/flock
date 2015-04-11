@@ -20,6 +20,10 @@ function Boids(opts, callback) {
   this.left = [];
   this.left[1] = 10;
   this.left[2] = 10;
+  this.countWin = [];
+  this.countWin[0] = 0;
+  this.countWin[1] = 0;
+  this.countWin[2] = 0;
   this.ticks = 0;
   opts = opts || {};
   callback = callback || function(){};
@@ -300,7 +304,8 @@ Boids.prototype.reset = function(lastWinner) {
   this.left[1] = 10;
   this.left[2] = 10;
   this.boids = [];
-  this.lastWinner = lastWinner
+  this.lastWinner = lastWinner;
+  this.countWin[lastWinner] ++;
 }
 
 var p = false;

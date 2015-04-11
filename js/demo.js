@@ -123,8 +123,8 @@ var winnerText = document.querySelector('[data-winner]');
 var teamText = document.querySelector('[data-team]');
 var frames = fps({ every: 10, decay: 0.04 }).on('data', function(rate) {
   if (!boids) return;
-  var count = boids.count(1);
-  var count2 = boids.count(2);
+  var count = boids.countWin[1];
+  var count2 = boids.countWin[2];
   livesText.innerHTML = String(boids.left[side]);
   countText.innerHTML = String(count);
   countText2.innerHTML = String(count2);
